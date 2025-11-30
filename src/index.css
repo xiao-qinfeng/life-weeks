@@ -1,0 +1,319 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
+  color: #000000;
+  transition: background-color 0.3s ease;
+  overflow-x: hidden;
+}
+
+body.dark {
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+/* Header Bar */
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  height: 60px;
+}
+
+.app.dark .header-bar {
+  background-color: rgba(10, 10, 10, 0.8);
+}
+
+.birth-date-input input {
+  font-size: 13px;
+  font-weight: 400;
+  color: #666;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.birth-date-input input:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.app.dark .birth-date-input input {
+  color: #999;
+}
+
+.app.dark .birth-date-input input:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.warning-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: #999;
+  text-align: right;
+  flex: 1;
+  margin: 0 12px;
+}
+
+.app.dark .warning-text {
+  color: #666;
+}
+
+.theme-toggle-small {
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-small:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.app.dark .theme-toggle-small:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Blocks Container */
+.blocks-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px 80px; /* Extra padding to avoid header/footer overlap */
+  min-height: calc(100vh - 120px); /* Subtract header (60px) + action bar (60px) */
+  margin-top: 60px; /* Account for fixed header */
+}
+
+.blocks-grid {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Block Styles */
+.block {
+  aspect-ratio: 1;
+  border-radius: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.block:hover::before {
+  opacity: 1;
+}
+
+.block.lived {
+  background-color: #FF3B30; /* macOS red close button color */
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2),
+              0 1px 2px rgba(0,0,0,0.1);
+}
+
+.app.dark .block.lived {
+  background-color: #FF453A; /* Slightly lighter red for dark mode */
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.3),
+              0 1px 3px rgba(0,0,0,0.3);
+}
+
+.block.remaining {
+  background-color: #30D158; /* macOS green zoom button color */
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2),
+              0 1px 2px rgba(0,0,0,0.1);
+}
+
+.app.dark .block.remaining {
+  background-color: #30D158; /* Keep green even in dark mode for contrast */
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.3),
+              0 1px 3px rgba(0,0,0,0.3);
+}
+
+.block.current-week {
+  background-color: #FFCC00 !important; /* macOS yellow minimize button color */
+  box-shadow: 0 0 12px rgba(255, 204, 0, 0.5),
+              inset 0 1px 2px rgba(255,255,255,0.4);
+  transform: scale(1.2);
+  z-index: 100;
+}
+
+.app.dark .block.current-week {
+  background-color: #FFD60A !important; /* Slightly lighter yellow for dark mode */
+  box-shadow: 0 0 16px rgba(255, 214, 10, 0.6),
+              inset 0 1px 2px rgba(255,255,255,0.5);
+}
+
+.block:hover {
+  transform: scale(1.2);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.app.dark .block:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Action Bar */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  height: 60px;
+}
+
+.app.dark .action-bar {
+  background-color: rgba(10, 10, 10, 0.8);
+}
+
+.action-button-small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button-small:hover {
+  color: #333;
+  border-color: #999;
+  background-color: rgba(0,0,0,0.02);
+}
+
+.app.dark .action-button-small {
+  color: #999;
+  border-color: #333;
+}
+
+.app.dark .action-button-small:hover {
+  color: #fff;
+  border-color: #555;
+  background-color: rgba(255,255,255,0.02);
+}
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.export-button-small {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-button-small:hover {
+  color: #333;
+  border-color: #999;
+  background-color: rgba(0,0,0,0.02);
+}
+
+.app.dark .export-button-small {
+  color: #999;
+  border-color: #333;
+}
+
+.app.dark .export-button-small:hover {
+  color: #fff;
+  border-color: #555;
+  background-color: rgba(255,255,255,0.02);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .header-bar {
+    padding: 8px 12px;
+  }
+
+  .birth-date-input input {
+    font-size: 10px;
+  }
+
+  .warning-text {
+    font-size: 10px;
+  }
+
+  .action-bar {
+    padding: 12px 16px;
+  }
+
+  .action-button-small {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .export-button-small {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .blocks-container {
+    padding: 50px 12px 70px;
+  }
+}
