@@ -16,9 +16,8 @@ const TIME_WARNINGS = [
 function App() {
   const [birthDate, setBirthDate] = useState('2000-01-01');
   const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const [livedWeeks, setLivedWeeks] = useState(0);
   const [currentWarning, setCurrentWarning] = useState(TIME_WARNINGS[0]);
-  const [gridDimensions, setGridDimensions] = useState({ columns: 78, rows: 60 });
+  const [gridSize, setGridSize] = useState({ columns: 78, rows: 60, blockSize: 12 });
   const blocksRef = useRef(null);
 
   // Calculate lived weeks based on birth date
@@ -28,28 +27,6 @@ function App() {
     const diffTime = Math.abs(now - birthDate);
     return Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
   };
-
-  useEffect(() => {
-    const weeks = calculateLivedWeeks(birthDate);
-    setLivedWeeks(weeks);
-  }, [birthDate]);
-
-  const updateGridDimensions = () => {
-    const isPortrait = window.innerHeight > window.innerWidth;
-    const isMobile = window.innerWidth <= 767;
-
-    if (isPortrait || isMobile) {
-      setGridDimensions({ columns: 26, rows: 180 });
-    } else {
-      setGridDimensions({ columns: 78, rows: 60 });
-    }
-  };
-
-  useEffect(() => {
-    updateGridDimensions();
-    window.addEventListener('resize', updateGridDimensions);
-    return () => window.removeEventListener('resize', updateGridDimensions);
-  }, []);
 
   useEffect(() => {
     const randomWarning = TIME_WARNINGS[Math.floor(Math.random() * TIME_WARNINGS.length)];
@@ -64,6 +41,39 @@ function App() {
     }
   }, [isDarkTheme]);
 
+  // Calculate optimal grid dimensions based on container size
+  const calculateGridSize = () => {
+    if (!blocksRef.current) return;
+
+    const containerWidth = blocksRef.current.offsetWidth - 40; // Subtract padding
+    const containerHeight = blocksRef.current.offsetHeight - 40; // Subtract padding
+
+    // Approximate square that fits 4680 blocks
+    const idealCols = Math.ceil(Math.sqrt(TOTAL_WEEKS * (window.innerWidth / window.innerHeight)));
+    const idealRows = Math.ceil(TOTAL_WEEKS / idealCols);
+
+    // Calculate block size
+    const blockWidth = containerWidth / idealCols;
+    const blockHeight = containerHeight / idealRows;
+    const blockSize = Math.min(blockWidth, blockHeight, 16); // Max 16px
+
+    // Recalculate exact cols/rows based on actual block size
+    const finalCols = Math.floor(containerWidth / blockSize);
+    const finalRows = Math.floor(containerHeight / blockSize);
+
+    setGridSize({
+      columns: finalCols,
+      rows: finalRows,
+      blockSize: blockSize
+    });
+  };
+
+  useEffect(() => {
+    calculateGridSize();
+    window.addEventListener('resize', calculateGridSize);
+    return () => window.removeEventListener('resize', calculateGridSize);
+  }, []);
+
   const renderBlocks = () => {
     const blocks = [];
     const currentYear = new Date().getFullYear();
@@ -76,7 +86,10 @@ function App() {
     const currentWeekOfYear = Math.floor((today - startOfYear) / (1000 * 60 * 60 * 24 * 7));
     const currentWeekIndex = (age * WEEKS_PER_YEAR) + currentWeekOfYear;
 
-    for (let i = 0; i < TOTAL_WEEKS; i++) {
+    // Only render blocks that fit on screen
+    const maxIndex = Math.min(TOTAL_WEEKS, gridSize.columns * gridSize.rows);
+
+    for (let i = 0; i < maxIndex; i++) {
       const yearIndex = Math.floor(i / WEEKS_PER_YEAR);
       const weekIndex = i % WEEKS_PER_YEAR;
 
@@ -90,11 +103,13 @@ function App() {
         <div
           key={i}
           className={`block ${isLived ? 'lived' : 'remaining'} ${isCurrentWeek ? 'current-week' : ''}`}
+          style={{ width: gridSize.blockSize, height: gridSize.blockSize }}
         />
       );
     }
     return blocks;
   };
+
 
   const exportBlocks = async (format) => {
     if (!blocksRef.current) return;
@@ -255,13 +270,9 @@ function App() {
         </button>
       </div>
 
-      <div className="blocks-container" ref={blocksRef}>
+      <div className="blocks-container" ref={blocksRef} onLoad={calculateGridSize}>
         <div
           className="blocks-grid"
-          style={{
-            gridTemplateColumns: `repeat(${gridDimensions.columns}, 1fr)`,
-            gridTemplateRows: `repeat(${gridDimensions.rows}, 1fr)`
-          }}
         >
           {renderBlocks()}
         </div>
